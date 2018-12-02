@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1543766248600.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "519B3AB1",
+    "lastKnownWriteTime" : 2314885539593990192,
+    "last_content_update" : 1543766248600,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "F9BEACB7",
+        "caption" : "explbis",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=explbis&cache_key=F9BEACB7",
+        "displayedObservations" : "815",
+        "environment" : "",
+        "object" : "explbis",
+        "preview" : "0",
+        "totalObservations" : "815",
+        "variables" : "13"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
