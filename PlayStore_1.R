@@ -5,7 +5,7 @@ library(ggExtra) #test beaux graph
 # Charger le fichier CSV et affiche des infos sur le dataset
 #################################################################################################################
 #charge le document csv de google play store
-datastore <- read.csv("~/5AISS/R_Android_Store/googleplaystore.csv") 
+datastore <- read.csv("~/ISS 2018-2019/R_Android_Store/googleplaystore.csv") #~/5AISS/R_Android_Store/googleplaystore.csv
 database = datastore
 #voir la forme du dataset
 #head(datastore) 
@@ -199,10 +199,16 @@ plotInsGnr = ggplot(datastore, aes(x=Genres,y=Installs,fill=Genres)) +
 
 #plot[3] afficher pour chacune des 5 category choisis Rating Vs Pop et Installs Vs Pop
 
-plotRatPopGame = ggplot(datastore %>% filter(Category %in% c("GAME")), aes(x=Population,y=Rating,fill=Population)) + 
+#Crée un dataset contenant la moyenne des ratings pour chaque Population dans la category GAME
+#datatest = datastore %>% filter(Category %in% c("GAME")) %>% group_by(Population) %>% summarise(MeanRate = mean(Rating, na.rm =TRUE))
+#Crée un dataset contenant la moyenne des ratings pour chaque Population pour toute les categorie !!!!
+dataplotPop = datastore %>% group_by(Category,Population) %>% summarise(MeanRate = mean(Rating, na.rm =TRUE),MeanRateI = mean(Installs, na.rm =TRUE))
+
+
+plotRatPopGame = ggplot(dataplotPop %>% filter(Category %in% c("GAME")), aes(x=Population,y=MeanRate,fill=Population)) + 
   geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
   #geom_boxplot() +
-  coord_flip() +
+  #coord_flip() +
   theme_bw()+
   labs(title="Rating by Pop for Game",x="Pop",y="Rating") + 
   theme(legend.position="none")+ 
@@ -210,12 +216,141 @@ plotRatPopGame = ggplot(datastore %>% filter(Category %in% c("GAME")), aes(x=Pop
     #axis.title.y = element_blank(),
     #axis.text.y = element_blank(),
     axis.ticks = element_blank(),
-    axis.line = element_blank())
+    axis.line = element_blank()) +
+  coord_cartesian(
+    ylim = c(4, 4.65))
+plotRatPopCommunication = ggplot(dataplotPop %>% filter(Category %in% c("COMMUNICATION")), aes(x=Population,y=MeanRate,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Communication",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) +
+  coord_cartesian(
+    ylim = c(4, 4.65))
+plotRatPopSocial = ggplot(dataplotPop %>% filter(Category %in% c("SOCIAL")), aes(x=Population,y=MeanRate,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Social",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) +
+  coord_cartesian(
+    ylim = c(4, 4.65))
+plotRatPopProductivity = ggplot(dataplotPop %>% filter(Category %in% c("PRODUCTIVITY")), aes(x=Population,y=MeanRate,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Productivity",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) +
+  coord_cartesian(
+    ylim = c(4, 4.65))
+plotRatPopPhotography = ggplot(dataplotPop %>% filter(Category %in% c("PHOTOGRAPHY")), aes(x=Population,y=MeanRate,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Photographie",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) +
+  coord_cartesian(
+    ylim = c(4, 4.65))
+
+plotRatPopGameI = ggplot(dataplotPop %>% filter(Category %in% c("GAME")), aes(x=Population,y=MeanRateI,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Game",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    #axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+  #coord_cartesian(ylim = c(4, 4.65))
+plotRatPopCommunicationI = ggplot(dataplotPop %>% filter(Category %in% c("COMMUNICATION")), aes(x=Population,y=MeanRateI,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Communication",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+  #coord_cartesian(ylim = c(4, 4.65))
+plotRatPopSocialI = ggplot(dataplotPop %>% filter(Category %in% c("SOCIAL")), aes(x=Population,y=MeanRateI,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Social",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+  #coord_cartesian(ylim = c(4, 4.65))
+plotRatPopProductivityI = ggplot(dataplotPop %>% filter(Category %in% c("PRODUCTIVITY")), aes(x=Population,y=MeanRateI,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Productivity",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+  #coord_cartesian(ylim = c(4, 4.65))
+plotRatPopPhotographyI = ggplot(dataplotPop %>% filter(Category %in% c("PHOTOGRAPHY")), aes(x=Population,y=MeanRateI,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Photographie",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+  #coord_cartesian(ylim = c(4, 4.65))
+
+plotpart3 = grid.arrange(plotRatPopGame, plotRatPopCommunication, plotRatPopSocial, plotRatPopProductivity, plotRatPopPhotography,
+                         plotRatPopGameI, plotRatPopCommunicationI, plotRatPopSocialI, plotRatPopProductivityI, plotRatPopPhotographyI,
+                         ncol=5, nrow=2, widths=c(7, 6,6,6,6), heights=c(4,4))
+
 # When the data contains y values in a column, use stat="identity" library(plyr) 
 # Calculate the mean mpg for each level of cyl 
 #mm <- ddply(mtcars, "cyl", summarise, mmpg = mean(mpg)) 
 #ggplot(mm, aes(x = factor(cyl), y = mmpg)) + geom_bar(stat = "identity")
-
+summary((datastore%>%filter(Category%in%c("GAME"))))
 
 #################################################################################################################
 # Tests
