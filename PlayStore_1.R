@@ -5,7 +5,7 @@ library(ggExtra) #test beaux graph
 # Charger le fichier CSV et affiche des infos sur le dataset
 #################################################################################################################
 #charge le document csv de google play store
-datastore <- read.csv("~/ISS 2018-2019/RStudio/googleplaystore.csv") 
+datastore <- read.csv("~/5AISS/R_Android_Store/googleplaystore.csv") 
 database = datastore
 #voir la forme du dataset
 #head(datastore) 
@@ -33,13 +33,15 @@ datastore = datastore %>%filter(!duplicated(datastore)) # enleve les lignes dupl
 # Traite la colone Size, passe en numÃ©rique, enleve k et passe les donnÃ©es non numÃ©riques en Na. Size en Mb
 datastore$Size = gsub("['M',\\+,\\,]","",datastore$Size)
 datastore$Size = gsub("Varies with device",NA,datastore$Size)
-datastore$Size = ifelse(grepl("k", datastore$Size), 0,as.numeric(datastore$Size))
+datastore$Size = ifelse(grepl("k", datastore$Size), 0,datastore$Size)
+datastore$Size = as.numeric(datastore$Size)
 
-
+datastore$Population = datastore$Content.Rating
 # Supprime les colones inutiles (Last.Updated, Current.Ver, Android.Ver)
 datastore$Last.Updated = NULL
 datastore$Current.Ver = NULL
 datastore$Android.Ver = NULL
+datastore$Content.Rating = NULL
 
 #pour s'entrainer juste avec une petite partie du fichier
 expl = sample_n(datastore, 1000) 
@@ -79,7 +81,7 @@ plot4 = ggplot(expl, aes(x=Category, fill=Type))+
   geom_bar(stat="count", width=0.2)+
   theme_minimal()+ 
   coord_flip()
-plot4data = ggplot(datastore, aes(x=Category, fill=Type))+geom_bar(stat="count", width=0.2)+
+plot4data = ggplot(datastore, aes(x=Category, fill=Type))+geom_bar(stat="count", width=0.4)+
   theme_minimal()+ 
   coord_flip()
 
@@ -121,6 +123,98 @@ plot7data = ggplot(datastore, aes(x=Category,y=Rating,color=Category)) +
   labs(title="Boxplot of App Rating VS Category",x="Category",y="Raiting") + 
   theme(legend.position="none") #+
 #theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank())
+#################################################################################################################
+#Plot [1] : Nb d'aplication par catégory
+plotNbCat = ggplot(datastore, aes(x=Category, fill=Type))+geom_bar(stat="count", width=0.8)+ 
+  coord_flip()
+#Plot [2] : Rating par category quartil.. + Installs par Category
+plotRatCat = ggplot(datastore, aes(x=Category,y=Rating,fill=Category)) + 
+  geom_boxplot() +
+  coord_flip() +
+  theme_bw()+
+  labs(title="Boxplot of App Rating VS Category",x="Category",y="Raiting") + 
+  theme(legend.position="none") #+
+  #theme(axis.text.x = element_text(angle=90))
+plotInsCat = ggplot(datastore, aes(x=Category,y=Installs,fill=Category)) + 
+  geom_bar(stat="Identity", width=0.8) +
+  coord_flip() +
+  theme_bw()+
+  labs(title="Installs VS Category",x="Category",y="Installs") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+         axis.title.y = element_blank(),
+         axis.text.y = element_blank(),
+         axis.ticks = element_blank(),
+         axis.line = element_blank())
+#plotpart2 = grid.arrange(plotRatCat, plotInsCat, 
+#                    ncol=2, nrow=1, widths=c(8, 6), heights=c(4))
+#faire un filter surle dataset avec category == GAME....
+plotRatCatCut = ggplot(datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")), aes(x=Category,y=Rating,fill=Category)) + 
+  geom_boxplot() +
+  coord_flip() +
+  theme_bw()+
+  labs(title="Boxplot of App Rating VS Category",x="Category",y="Raiting") + 
+  theme(legend.position="none")
+plotInsCatCut = ggplot(datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")), aes(x=Category,y=Installs,fill=Category)) + 
+  geom_bar(stat="Identity", width=0.8) +
+  coord_flip() +
+  theme_bw()+
+  labs(title="Installs VS Category",x="Category",y="Installs") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+#plotpart2 = grid.arrange(plotRatCatCut, plotInsCatCut, 
+#                    ncol=2, nrow=1, widths=c(8, 6), heights=c(4))
+
+
+#Plot [2bis] : Rating par category quartil.. + Installs par Genres
+plotRatGnr = ggplot(datastore, aes(x=Genres,y=Rating,fill=Genres)) + 
+  geom_boxplot() +
+  coord_flip() +
+  theme_bw()+
+  #labs(title="Boxplot of App Rating VS Genres",x="Genres",y="Raiting") + 
+  theme(legend.position="none") +
+  theme( axis.text.x = element_blank(), #
+         axis.title.x = element_blank(),
+         axis.ticks = element_blank(),
+         axis.line = element_blank())#+
+#theme(axis.text.x = element_text(angle=90))
+plotInsGnr = ggplot(datastore, aes(x=Genres,y=Installs,fill=Genres)) + 
+  geom_bar(stat="Identity", width=0.8) +
+  coord_flip() +
+  theme_bw()+
+  #labs(title="Installs VS Genres",x="Genres",y="Installs") + 
+  theme(legend.position="none")+ 
+  theme( axis.text.x = element_blank(), #
+    axis.title.y = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+#plotpart2 = grid.arrange(plotRatGnr, plotInsGnr, plotRatCat, plotInsCat,
+#                    ncol=2, nrow=2, widths=c(8, 6), heights=c(4,4))
+
+#plot[3] afficher pour chacune des 5 category choisis Rating Vs Pop et Installs Vs Pop
+
+plotRatPopGame = ggplot(datastore %>% filter(Category %in% c("GAME")), aes(x=Population,y=Rating,fill=Population)) + 
+  geom_bar(stat="identity", width=0.8) + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  coord_flip() +
+  theme_bw()+
+  labs(title="Rating by Pop for Game",x="Pop",y="Rating") + 
+  theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    #axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+# When the data contains y values in a column, use stat="identity" library(plyr) 
+# Calculate the mean mpg for each level of cyl 
+#mm <- ddply(mtcars, "cyl", summarise, mmpg = mean(mpg)) 
+#ggplot(mm, aes(x = factor(cyl), y = mmpg)) + geom_bar(stat = "identity")
 
 
 #################################################################################################################
@@ -149,7 +243,7 @@ test2 = ggplot(datastore, aes(x=Size, y=Rating)) +
 test3 = ggplot(datastore, aes(x=Rating,fill=Type))+
   geom_bar(stat="count", width=0.2)+
   theme_minimal()+ 
-  coord_flip() +theme_minimal() +theme(
+  coord_flip() +theme(
     axis.text.x = element_blank(), 
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
@@ -169,5 +263,5 @@ blankPlot <- ggplot()+geom_blank(aes(1,1))+
     axis.ticks = element_blank(),
     axis.line = element_blank()
   )
-test = grid.arrange(test1, blankPlot, test2, test3, 
-             ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+#test = grid.arrange(test1, blankPlot, test2, test3, 
+             #ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
