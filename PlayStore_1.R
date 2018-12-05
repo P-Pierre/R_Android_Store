@@ -1,6 +1,7 @@
 library(tidyverse) #charge la librairie Tidyverse
 library("gridExtra") # pour faire le multigraph
 library(ggExtra) #test beaux graph
+library(reshape2)
 #################################################################################################################
 # Charger le fichier CSV et affiche des infos sur le dataset
 #################################################################################################################
@@ -346,12 +347,155 @@ plotpart3 = grid.arrange(plotRatPopGame, plotRatPopCommunication, plotRatPopSoci
                          plotRatPopGameI, plotRatPopCommunicationI, plotRatPopSocialI, plotRatPopProductivityI, plotRatPopPhotographyI,
                          ncol=5, nrow=2, widths=c(7, 6,6,6,6), heights=c(4,4))
 
-# When the data contains y values in a column, use stat="identity" library(plyr) 
-# Calculate the mean mpg for each level of cyl 
-#mm <- ddply(mtcars, "cyl", summarise, mmpg = mean(mpg)) 
-#ggplot(mm, aes(x = factor(cyl), y = mmpg)) + geom_bar(stat = "identity")
-summary((datastore%>%filter(Category%in%c("GAME"))))
 
+# plot[4] pourchaque category, récupérer seulement les colones avec unne valeurs supérieur au 3ème quartil de Rating (Installs) et calculer la moyenne de prix
+
+#avoir le troisième quartil
+#summary((datastore%>%filter(Category%in%c("GAME")))$Rating)[5]
+
+#donne un dataset avec 5 lignes, et prix moyen par catégory filtré par le troisième quartil de rating
+datatestf = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")) %>% group_by(Category) %>% filter(Rating>=summary(datastore$Rating)[5])%>%summarise(Pricebestf = mean(Price,na.rm=TRUE))
+#donne un dataset avec 5 lignes, et prix moyen par catégory 
+datatest = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")) %>% group_by(Category) %>%summarise(Pricebest = mean(Price,na.rm=TRUE))
+datatestPrice = left_join(datatest,datatestf)
+
+#donne un dataset avec 5 lignes, et prix moyen par catégory filtré par le troisième quartil de installs
+datatestIf = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")) %>% group_by(Category) %>% filter(Installs>=summary(datastore$Installs)[5])%>%summarise(PricebestIf = mean(Price,na.rm=TRUE))
+datatestPrice = left_join(datatestPrice,datatestIf)
+
+#Trop forte influence de toute les applis gratuites, regarde que les payantes
+#summary((datastore%>%filter(Type %in% c("Paid")))$Price)
+
+#donne un dataset avec 5 lignes, et prix moyen par catégory filtré par le troisième quartil de rating sans les gratuites
+datatestfp = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY"),Type %in% c("Paid")) %>% group_by(Category) %>% filter(Rating>=summary(datastore$Rating)[5])%>%summarise(Pricebestfp = mean(Price,na.rm=TRUE))
+#donne un dataset avec 5 lignes, et prix moyen par catégory sans les gratuites
+datatestp = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY"),Type %in% c("Paid")) %>% group_by(Category) %>%summarise(Pricebestp = mean(Price,na.rm=TRUE))
+datatestPricep = left_join(datatestp,datatestfp)
+
+#donne un dataset avec 5 lignes, et prix moyen par catégory filtré par le troisième quartil de installs sans les gratuites
+datatestIfp = datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY"),Type %in% c("Paid")) %>% group_by(Category) %>% filter(Installs>=summary(datastore$Installs)[5])%>%summarise(PricebestIfp = mean(Price,na.rm=TRUE))
+datatestPricep = left_join(datatestPricep,datatestIfp)
+datatestPrice = left_join(datatestPrice,datatestPricep)
+#Mes 0 la ou il y a NA dans les colones avec que des payantes, c'est bien 0 normalement !
+datatestPrice[is.na(datatestPrice)]=0.01
+
+
+#test du plot 
+#ggplot(datatestPrice, aes(x=Category)) + geom_bar(aes(y=Pricebestp),stat = "identity",colour="red",width=0.2,position = "dodge") + geom_bar(aes(y=Pricebestfp),stat = "identity",colour="red",width=0.2,position = "dodge") + geom_bar(aes(y=PricebestIfp),stat = "identity",colour="red",width=0.2,position = "dodge")
+#datatestPrice = rename(databestPrice, Pricebestp = No_Filter, Pricebestfp = Apps_rating_top_quartil)
+datatestPriceResh = melt(datatestPrice,id.vars = 'Category')
+plotPrice = ggplot(datatestPriceResh%>%filter(variable %in% c("Pricebestp","Pricebestfp","PricebestIfp")), aes(x=Category,y=value,fill=variable)) + 
+  geom_bar(stat="identity", width=0.5,position = "dodge") + # fonctionne pas avec Geom_bar, pourtant même type donnée que avant
+  #geom_boxplot() +
+  #coord_flip() +
+  theme_bw()+
+  labs(title="Mean price of paid Apps for each Category with 3 different filter",x="Category",y="Mean Price") + 
+  #theme(legend.position="none")+ 
+  theme( #axis.text.x = element_blank(), 
+    #axis.title.y = element_blank(),
+    #axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()) #+
+#coord_cartesian(ylim = c(4, 4.65))
+
+#filtre les payantes plus tards, aprés la selection par quartil => trop peut de donner payantes au final, genre 10 par catégory
+#datastore %>% filter(Category %in% c("GAME","COMMUNICATION","SOCIAL","PRODUCTIVITY","PHOTOGRAPHY")) %>% group_by(Category) %>% filter(Rating>=summary(datastore$Rating)[5])%>%filter(Type %in% c("Paid"))%>%summarise(nb = n())
+
+# plot [5], Rating vs Size et Installs vs Size, plot avec grid arrange plutot que ggMarginal
+
+# Rating vs size
+SizeCount = ggplot(datastore, aes(x=Size,fill=Type))+
+  geom_histogram()+
+  theme_minimal() +theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+
+SizeRating = ggplot(datastore, aes(x=Size, y=Rating)) +
+  scale_x_continuous() +
+  geom_point(aes(col=Type)) +
+  theme_linedraw()
+
+RatingCount = ggplot(datastore, aes(x=Rating,fill=Type))+
+  geom_bar(stat="count", width=0.2)+
+  theme_minimal()+ 
+  coord_flip() +theme(
+    axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+blankPlot <- ggplot()+geom_blank(aes(1,1))+
+  theme(
+    plot.background = element_blank(), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), 
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(), 
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()
+  )
+#SizeVSRating = grid.arrange(SizeCount, blankPlot, SizeRating, RatingCount, 
+#                    ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+
+# Installs vs size pas représentatif voir pas utile
+
+SizeCount = ggplot(datastore, aes(x=Size,fill=Type))+
+  coord_flip() +
+  geom_histogram()+
+  theme_minimal() +theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+
+SizeInstalls = ggplot(datastore, aes(x=Size, y=Installs)) +
+  coord_flip() +
+  scale_x_continuous() +
+  geom_point(aes(col=Type)) +
+  theme_linedraw()
+
+InstallsCount = ggplot(datastore, aes(x=Installs,fill=Type))+
+  geom_histogram()+
+  theme_minimal()+ 
+  #coord_flip() +
+  theme(
+    axis.text.x = element_blank(), 
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+blankPlot <- ggplot()+geom_blank(aes(1,1))+
+  theme(
+    plot.background = element_blank(), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(), 
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(), 
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank()
+  )
+SizeVSInstalls = grid.arrange(InstallsCount, blankPlot, SizeInstalls,SizeCount , 
+                    ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+
+#plot [bonus] les applis les plus chers
+plotpricecountf = ggplot(datastore%>%filter(Type %in% c("Paid")), aes(x=Price)) +
+  geom_histogram() +
+  theme_linedraw()
+#???nom des applis les plus chers
+names = (datastore%>%filter(Type %in% c("Paid"),Price>=395))
+names = select(names,App,Price,Installs)
 #################################################################################################################
 # Tests
 #################################################################################################################
@@ -399,4 +543,4 @@ blankPlot <- ggplot()+geom_blank(aes(1,1))+
     axis.line = element_blank()
   )
 #test = grid.arrange(test1, blankPlot, test2, test3, 
-             #ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
+#             ncol=2, nrow=2, widths=c(4, 1.4), heights=c(1.4, 4))
